@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 local package = {}
 local manifest = {version=0.01}
 
@@ -67,3 +68,7 @@ function package.updateScript(script, scriptFolder, webFolder, cversion)
 end
 
 return package
+=======
+local try()
+end
+>>>>>>> origin/DWMain
