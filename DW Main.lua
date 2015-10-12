@@ -1,5 +1,5 @@
-local manifest = {version=0.01, special="Nebelwolfi"}
-local q = {p=LIB_PATH}
+local manifest = {version=0.02, special="Nebelwolfi"}
+local q = {p=LIB_PATH, s=SCRIPT_PATH}
 local folders = {"DW","DW\\AI","DW\\Bots","DW\\Champions","DW\\Other"}
 
 local hosts = {
@@ -31,8 +31,8 @@ function OnLoad()
   
   mods = require "DW\\Other\\DW Updater"
   
-  mods.printInfo("A huge thanks to "..manifest.special.." for all his help and time in teaching me things. I cannot list the amount of things he helped and taught me. Again I would love to thank him.")
+  mods.printInfo("A huge thanks to "..manifest.special.." for all his help and time. I cannot list the amount of things he helped and taught me. Again I would love to thank him. So this is for you "..manifest.special)
   
-  mods.updateScript("DW Main", "", "", manifest.version)
+  mods.updateScript("DW Main", q.s, "", manifest.version)
   
 end
