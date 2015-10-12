@@ -1,50 +1,35 @@
-require "DW\\DW Auto Leveler"
+local manifest = {version=0.01}
+local q = {p=LIB_PATH}
+local folders = {"DW","DW\\AI","DW\\Bots","DW\\Champions","DW\\Other"}
 
---[[ Auto updater start ]]--
-local version = 0.081
-local AUTO_UPDATE = true
-local UPDATE_HOST = "raw.github.com"
-local UPDATE_PATH = "/xDeadweightx/DWMain/master/DW Main.lua".."?rand="..math.random(1,10000)
-local UPDATE_FILE_PATH = SCRIPT_PATH.."DW Main.lua"
-local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
-local function TopKekMsg(msg) print("<font color=\"#6699ff\"><b>[Top Kek Series]: Cassiopeia - </b></font> <font color=\"#FFFFFF\">"..msg..".</font>") end
-if AUTO_UPDATE then
-  local ServerData = GetWebResult(UPDATE_HOST, "/xDeadweightx/DWMain/master/DW Main.version")
-  if ServerData then
-    ServerVersion = type(tonumber(ServerData)) == "number" and tonumber(ServerData) or nil
-    if ServerVersion then
-      if tonumber(version) < ServerVersion then
-        TopKekMsg("New version available v"..ServerVersion)
-        TopKekMsg("Updating, please don't press F9")
-        DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function () TopKekMsg("Successfully updated. ("..version.." => "..ServerVersion.."), press F9 twice to load the updated version") end) end, 3)
-      else
-        TopKekMsg("Loaded the latest version (v"..ServerVersion..")")
-      end
-    end
-  else
-    TopKekMsg("Error downloading version info")
-  end
+local hosts = {
+  host = "raw.githubusercontent.com",
+  path = "/xDeadweightx/DWMain/DWMain/DW/Other/",
+  append = "?no-cache="..math.random(1,25000)
+}
+
+local function checkDIR(name)
+  if not DirectoryExist(name) then CreateDirectory(name) end
 end
---[[ Auto updater end ]]--
 
-function OnTick()
-  
+local function forceDownload(path,name)
+  name = name..".lua"
+  if not FileExist(path..name) then
+    local UPDATE_URL = "https://"..hosts.host..hosts.path..name..hosts.append
+    DownloadFile(UPDATE_URL, path..name, function () PrintChat("Successfully Downloaded: "..name) end)
+  end
 end
 
 function OnLoad()
-  if not DirectoryExist(LIB_PATH.."DW\\") then CreateDirectory(LIB_PATH.."DW\\") end
-  if not FileExist(LIB_PATH.."DW\\DW Auto Leveler.lua") then
-    --download
-    PrintChat("Download Item")
-    return
+
+  for _,value in ipairs(folders) do
+    checkDIR(q.p..value)
   end
   
-  DW_AutoLevel_Menu()
-end
-
-function OnTick()
-  AutoLevelTick()
-end
-
-function OnUnload()
+  forceDownload(q.p.."DW\\Others","DW Updater")
+  
+  --mods = require "DW\\Other\\DW Updater"
+  
+  --mods.updateScript("DW Main", "", "", manifest.version)
+  
 end
