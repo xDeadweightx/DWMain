@@ -1,5 +1,5 @@
-local manifest = {version=0.53, special="Nebelwolfi"}
-local q = {p=LIB_PATH, s=SCRIPT_PATH, sel=1}
+local manifest = {version=0.54, special="Nebelwolfi"}
+local q = {p=LIB_PATH, s=SCRIPT_PATH, sel=1, update=0}
 local folders = {"DW","DW\\AI","DW\\Bots","DW\\Champions","DW\\Other"}
 
 local mods = {}
@@ -28,6 +28,10 @@ local function appendTable(t1, t2)
   end
 end
 
+local function start()
+  PrintChat("Downloads / Updates finished!")
+end
+
 local function updater()
   local name, bolpath, webpath, call, req = scripts[q.sel].name, scripts[q.sel].bolfolder, scripts[q.sel].webfolder, scripts[q.sel].call, scripts[q.sel].require
   local full_path = q.p .. bolpath .. name .. ".lua"
@@ -36,6 +40,8 @@ local function updater()
   end
   
   local update_url = "https://"..hosts.host..hosts.path..webpath..name..".lua"..hosts.append
+  
+  PrintChat(string.format("Checking Update %s/%s - Updates Did: %s", q.sel, #scripts, q.update))
   
   if not FileExist(full_path) then
     -- Download
@@ -47,18 +53,9 @@ local function updater()
               return
             end
             
-            if req then
-              mods[call] = require(bolpath..name)
-            end
-            
-            if call == "ScriptConfigs" then
-              local extraTable = mods.ScriptConfigs.add()
-              PrintChat(#extraTable)
-            end
-            
             -- Needs to go in between updaters and downloaders to it doesnt force lag download
-            q.sel = q.sel + 1
-            if scripts[q.sel] == nil then return end
+            --q.sel = q.sel + 1
+            if scripts[q.sel] == nil then start() return end
             updater()
             
         end)
@@ -79,16 +76,13 @@ local function updater()
       appendTable(extraTable)
     end
     
-    
     local cversion = 0.0
     if call == "Main" then
       cversion = manifest.version
     else
       cversion = mods[call].returnVersion()
     end
-    
     --Began update check!
-    
     
     local ServerData = GetWebResult(hosts.host, hosts.path .. webpath .. name ..".version")
     
@@ -97,32 +91,35 @@ local function updater()
       if ServerVersion then
         
         if tonumber(cversion) < ServerVersion then
-          
+          PrintChat("Needs to delete: "..full_path)
+          --Delete file and restart to download again!
+          --[[DeleteFile(full_path)
+          q.sel = q.sel + 1
+          if scripts[q.sel] == nil then start() return end
+          DelayAction(updater(),1)]]--
           DelayAction(
             function()
               DownloadFile(update_url, full_path,
               function ()
-                  --package.printInfo("Successfully updated. ("..cversion.." => "..ServerVersion.."), press F9 twice to load the updated version", colors.success)
-                  PrintChat(name..".lua successfully updated! No reload required!")
+                  PrintChat(name..".lua successfully updated from v"..cversion.." to v"..ServerVersion)
                   
                   if call == "Main" then
                     PrintChat("Press F9 to reload...")
                     return
                   end
                   
-                  mods[call] = require(bolpath..name)
-                  
-                  q.sel = q.sel + 1
-                  if scripts[q.sel] == nil then return end
-                  updater()
+                  PrintChat("Do NOT reload yet!")
+                  --q.update = q.update + 1
+                  --q.sel = q.sel + 1
+                  if scripts[q.sel] == nil then start() return end
+                  DelayAction(updater,1)
               end)
             end,
           1)
         else
         
-        PrintChat(name..".lua is up to date!")
         q.sel = q.sel + 1
-        if scripts[q.sel] == nil then return end
+        if scripts[q.sel] == nil then start() return end
         updater()
         
         end
@@ -131,7 +128,7 @@ local function updater()
         PrintChat("Update Error => Not Found for: "..name)
         
         q.sel = q.sel + 1
-        if scripts[q.sel] == nil then return end
+        if scripts[q.sel] == nil then start() return end
         updater()
       end
     end
