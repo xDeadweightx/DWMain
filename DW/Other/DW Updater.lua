@@ -1,5 +1,5 @@
 local package = {}
-local manifest = {version=0.02}
+local manifest = {version=0.03}
 
 local colors = {color1="#FF851B", color2="#6582C9", color3="#FFFFFF", error="#FF0000", error2="#FF1919", success="#32CD32"}
 
@@ -8,6 +8,10 @@ local hosts = {
   path = "/xDeadweightx/DWMain/DWMain/",
   append = "?no-cache="..math.random(1,25000)
 }
+
+function package.returnVersion()
+  return manifest.version
+end
 
 function package.printInfo(info, color)
   color = color or colors.color1
