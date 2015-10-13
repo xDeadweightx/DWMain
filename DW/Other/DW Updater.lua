@@ -23,7 +23,7 @@ local function forceDownload(path, name, addToPath)
   name = name..".lua"
   if not FileExist(path..name) then
     local UPDATE_URL = "https://"..hosts.host..hosts.path..addToPath..name..hosts.append
-    PrintChat(path..name)
+    PrintChat("Downloading: "..name)
     DownloadFile(UPDATE_URL, path..name, function () package.printInfo("Successfully Downloaded: "..name, colors.success) end)
     return false
   end
@@ -45,8 +45,8 @@ function package.updateScript(script, scriptFolder, webFolder, cversion)
     local ServerVersion = type(tonumber(ServerData)) == "number" and tonumber(ServerData) or nil
     if ServerVersion then
       if tonumber(cversion) < ServerVersion then
-        package.printInfo("Needs to update!", colors.color3)
-        package.printInfo("Updating, please don't press F9", colors.color2)
+        package.printInfo("Needs to update: "..script, colors.color3)
+        package.printInfo("Updating "..script..", please don't press F9", colors.color2)
         
         local file_path = scriptFolder..script..".lua"
         
