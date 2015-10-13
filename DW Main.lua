@@ -44,12 +44,15 @@ local function start()
   end
   PrintChat(string.format("%s",dwPrint(" - DW Loading all menus!", colors.color3)))
   
-  PrintChat(string.format("%s",#scripts))
+  for _=1,3 do
+    PrintChat(string.format("%s",_))
+  end
   
-  return true
+  return false
 end
 
 local function updater()
+  if scripts[q.sel] == nil then start() return false end
   local name, bolpath, webpath, call, req, up = scripts[q.sel].name, scripts[q.sel].bolfolder, scripts[q.sel].webfolder, scripts[q.sel].call, scripts[q.sel].require, scripts[q.sel].update or false
   local full_path = q.p .. bolpath .. name .. ".lua"
   
@@ -72,7 +75,7 @@ local function updater()
             PrintChat(string.format("%s",dwPrint(" - DW Error Resolved => Download Complete.", colors.success)))
             -- Needs to go in between updaters and downloaders to it doesnt force lag download
             -- will auto download no need to reload
-            if scripts[q.sel] == nil then start() end
+            --if scripts[q.sel] == nil then start() return false end
             updater()
             
         end)
@@ -116,7 +119,7 @@ local function updater()
                   
                   q.update = q.update + 1
                   q.sel = q.sel + 1
-                  if scripts[q.sel] == nil then start() end
+                  --if scripts[q.sel] == nil then start() end
                   updater()
               end)
             end,
@@ -124,7 +127,7 @@ local function updater()
         else
         
         q.sel = q.sel + 1
-        if scripts[q.sel] == nil then start() end
+        --if scripts[q.sel] == nil then start() end
         updater()
         
         end
@@ -159,9 +162,8 @@ function OnLoad()
     checkDIR(q.p..value)
   end
   
-  DelayAction(updater(),2)
+  DelayAction(updater,2)
   
-  PrintChat("Damn")
   
   
 end
