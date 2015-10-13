@@ -1,5 +1,5 @@
 local package = {}
-local manifest = {version=0.03}
+local manifest = {version=0.04}
 
 local colors = {color1="#FF851B", color2="#6582C9", color3="#FFFFFF", error="#FF0000", error2="#FF1919", success="#32CD32"}
 
@@ -23,7 +23,7 @@ local function forceDownload(path, name, addToPath)
   name = name..".lua"
   if not FileExist(path..name) then
     local UPDATE_URL = "https://"..hosts.host..hosts.path..addToPath..name..hosts.append
-    PrintChat("Downloading: "..name)
+    PrintChat("Downloading Script: "..name)
     DownloadFile(UPDATE_URL, path..name, function () package.printInfo("Successfully Downloaded: "..name, colors.success) end)
     return false
   end
@@ -36,7 +36,7 @@ function package.updateScript(script, scriptFolder, webFolder, cversion)
   webFolder = webFolder or nil
   cversion = cversion or nil
   
-  if script == nil or scriptFolder == nil or webFolder == nil or cversion == nil then printInfo("Update Error => Formatting", colors.error) return end
+  if script == nil or scriptFolder == nil or webFolder == nil or cversion == nil then package.printInfo("Update Error => Formatting", colors.error) return end
   
   if not forceDownload(scriptFolder, script, webFolder) then return end
   
