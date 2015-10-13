@@ -1,5 +1,5 @@
 local package = {}
-local manifest = {version=0.04}
+local manifest = {version=0.03}
 
 local colors = {color1="#FF851B", color2="#6582C9", color3="#FFFFFF", error="#FF0000", error2="#FF1919", success="#32CD32"}
 
@@ -52,13 +52,23 @@ function package.updateScript(script, scriptFolder, webFolder, cversion)
         
         local UPDATE_URL = "https://"..hosts.host..hosts.path..webFolder..script..".lua"..hosts.append
         
-        DelayAction(function() DownloadFile(UPDATE_URL, file_path, function () package.printInfo("Successfully updated. ("..cversion.." => "..ServerVersion.."), press F9 twice to load the updated version", colors.success) end) end, 1)
+        DelayAction(
+          function()
+            DownloadFile(UPDATE_URL, file_path,
+            function ()
+                package.printInfo("Successfully updated. ("..cversion.." => "..ServerVersion.."), press F9 twice to load the updated version", colors.success)
+                return true
+            end)
+          end,
+        1)
       else
         package.printInfo("Loaded the latest version of: "..script, colors.success)
+        return true
       end
     end
   else
     package.printInfo("Update Error => Server Connection - Try reloading", colors.error2)
+    return true
   end
 end
 
