@@ -1,5 +1,5 @@
 local skillsx = {}
-local manifest = {version=0.01}
+local manifest = {version=0.02}
 
 function skillsx.returnVersion()
   return manifest.version
