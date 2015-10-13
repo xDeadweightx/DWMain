@@ -13,4 +13,8 @@ function scripts.add()
   return allScripts
 end
 
+function scripts._init()
+  
+end
+
 return scripts

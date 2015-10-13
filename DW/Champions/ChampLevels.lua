@@ -5,7 +5,7 @@ function skillsx.returnVersion()
   return manifest.version
 end
 
-function skillsx.test()
+function skillsx._init()
   PrintChat("X")
 end
 --[[local skillsEQ = {

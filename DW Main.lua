@@ -1,6 +1,8 @@
-local manifest = {version=0.54, special="Nebelwolfi"}
+local manifest = {version=0.55, special="Nebelwolfi"}
 local q = {p=LIB_PATH, s=SCRIPT_PATH, sel=1, update=0}
 local folders = {"DW","DW\\AI","DW\\Bots","DW\\Champions","DW\\Other"}
+
+local colors = {color1="#FF851B", color2="#6582C9", color3="#FFFFFF", error="#FF0000", error2="#FF1919", success="#32CD32", warning="#FFFF00"}
 
 local mods = {}
 
@@ -19,6 +21,12 @@ local function checkDIR(name)
   if not DirectoryExist(name) then CreateDirectory(name) end
 end
 
+local function dwPrint(str, color)
+  color = color or colors.color1
+  str = str or " "
+  return "<font color=\""..color.."\">"..str.."</font>"
+end
+
 local function appendTable(t1, t2)
   t1 = t1 or nil
   t2 = t2 or scripts
@@ -29,33 +37,42 @@ local function appendTable(t1, t2)
 end
 
 local function start()
-  PrintChat("Downloads / Updates finished!")
+  PrintChat(string.format("%s", dwPrint("DW Download / Updates Finished") ))
+  if q.update ~= 0 then
+    PrintChat(string.format("%s", dwPrint("DW - Press F9 and reload! Thanks.", colors.error2)))
+    return
+  end
+  PrintChat(string.format("%s",dwPrint(" - DW Loading all menus!", colors.color3)))
+  
+  PrintChat(string.format("%s",#scripts))
+  
+  return true
 end
 
 local function updater()
-  local name, bolpath, webpath, call, req = scripts[q.sel].name, scripts[q.sel].bolfolder, scripts[q.sel].webfolder, scripts[q.sel].call, scripts[q.sel].require
+  local name, bolpath, webpath, call, req, up = scripts[q.sel].name, scripts[q.sel].bolfolder, scripts[q.sel].webfolder, scripts[q.sel].call, scripts[q.sel].require, scripts[q.sel].update or false
   local full_path = q.p .. bolpath .. name .. ".lua"
+  
   if call=="Main" then
     full_path = q.s .. name .. ".lua"
   end
   
   local update_url = "https://"..hosts.host..hosts.path..webpath..name..".lua"..hosts.append
   
-  PrintChat(string.format("Checking Update %s/%s - Updates Did: %s", q.sel, #scripts, q.update))
+  PrintChat(string.format("%s",dwPrint("DW Updater - "..name..".lua")))
+  PrintChat(string.format("%s %s", dwPrint(" - DW Checking Update for"), dwPrint(q.sel.." out of "..#scripts.." scripts.", colors.color2)))
   
   if not FileExist(full_path) then
     -- Download
-    PrintChat(name..".lua Not Found => Is Downloading.")
+    PrintChat(string.format( "%s", dwPrint(" - DW Error => "..name..".lua is not found", colors.error) ))
+    PrintChat(string.format("%s",dwPrint(" - DW Attempting to fix the error!", colors.color3)))
     DelayAction(function()
       DownloadFile(update_url, full_path, function ()
-            if call == "Main" then
-              PrintChat("Press F9 to reload...")
-              return
-            end
             
+            PrintChat(string.format("%s",dwPrint(" - DW Error Resolved => Download Complete.", colors.success)))
             -- Needs to go in between updaters and downloaders to it doesnt force lag download
-            --q.sel = q.sel + 1
-            if scripts[q.sel] == nil then start() return end
+            -- will auto download no need to reload
+            if scripts[q.sel] == nil then start() end
             updater()
             
         end)
@@ -63,12 +80,9 @@ local function updater()
     1)
   else
     -- Update
-    PrintChat(name..".lua Found => Can Update?")
     if req then
       mods[call] = require(bolpath..name)
     end
-    
-    if mods[call] == nil and req then PrintChat("Require is messed up. Check script configs for: "..call) return end
     
     if call == "ScriptConfigs" then
       local extraTable = {}
@@ -82,8 +96,8 @@ local function updater()
     else
       cversion = mods[call].returnVersion()
     end
-    --Began update check!
     
+    --Began update check!
     local ServerData = GetWebResult(hosts.host, hosts.path .. webpath .. name ..".version")
     
     if ServerData then
@@ -91,49 +105,40 @@ local function updater()
       if ServerVersion then
         
         if tonumber(cversion) < ServerVersion then
-          PrintChat("Needs to delete: "..full_path)
-          --Delete file and restart to download again!
-          --[[DeleteFile(full_path)
-          q.sel = q.sel + 1
-          if scripts[q.sel] == nil then start() return end
-          DelayAction(updater(),1)]]--
+          
+          PrintChat(string.format("%s",dwPrint(" - DW Warning => Script Version "..name..".lua", colors.warning)))
+          
           DelayAction(
             function()
               DownloadFile(update_url, full_path,
               function ()
-                  PrintChat(name..".lua successfully updated from v"..cversion.." to v"..ServerVersion)
+                  PrintChat(string.format("%s",dwPrint(" - DW Warning Resolved => "..name..".lua updated from "..cversion.." to "..ServerVersion, colors.success)))
                   
-                  if call == "Main" then
-                    PrintChat("Press F9 to reload...")
-                    return
-                  end
-                  
-                  PrintChat("Do NOT reload yet!")
-                  --q.update = q.update + 1
-                  --q.sel = q.sel + 1
-                  if scripts[q.sel] == nil then start() return end
-                  DelayAction(updater,1)
+                  q.update = q.update + 1
+                  q.sel = q.sel + 1
+                  if scripts[q.sel] == nil then start() end
+                  updater()
               end)
             end,
           1)
         else
         
         q.sel = q.sel + 1
-        if scripts[q.sel] == nil then start() return end
+        if scripts[q.sel] == nil then start() end
         updater()
         
         end
         
       else
-        PrintChat("Update Error => Not Found for: "..name)
+        PrintChat(string.format( "%s", dwPrint(" - DW Error => Update File "..name..".lua is not found. Report this please.", colors.error) ))
         
         q.sel = q.sel + 1
-        if scripts[q.sel] == nil then start() return end
+        --if scripts[q.sel] == nil then return end
         updater()
       end
     end
     
-    
+    return
     -- Needs to go in between updaters and downloaders to it doesnt force lag download
     --[[
     q.sel = q.sel + 1
@@ -141,18 +146,22 @@ local function updater()
     updater()
     ]]--
   end
-  
+  return 
 end
 
 
 function OnLoad()
+  
+  PrintChat(string.format("%s", dwPrint("Welcome to DW Main. Update will start in about 3 seconds.")))
   
   --Create Folders
   for _,value in ipairs(folders) do
     checkDIR(q.p..value)
   end
   
-  updater()
+  DelayAction(updater(),2)
+  
+  PrintChat("Damn")
   
   
 end
