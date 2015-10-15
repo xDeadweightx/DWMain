@@ -1,5 +1,5 @@
 local scripts = {}
-local manifest = {version=0.01}
+local manifest = {version=0.03}
 
 function scripts.returnVersion()
   return manifest.version
@@ -13,7 +13,7 @@ function scripts.add()
   return allScripts
 end
 
-function scripts._init()
+function scripts._init(mods)
   
 end
 

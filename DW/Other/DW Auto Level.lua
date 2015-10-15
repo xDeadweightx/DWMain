@@ -1,12 +1,17 @@
 local autolevel = {}
-local manifest = {version=0.01}
+local manifest = {version=0.04}
 
-function autolevel.returnVersion()
-  return manifest.version
-end
+local champ = player.charName
 
-function autolevel._init()
-  Menu:addParam("DWAutoLevel", "Auto-Level Spells for "..player.charName.." key", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
+local gmods = {}
+
+function autolevel._init(mods)
+  gmods = mods
+  gmods["Champlevel"]._init(mods)
+  
+  Menu = scriptConfig("DW Auto Leveler", champ)
+  Menu:addParam("DWAutoLevel", "Auto-Level Spells for "..champ.." key", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
+  
 end
 
 return autolevel
