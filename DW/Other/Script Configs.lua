@@ -8,13 +8,10 @@ end
 function scripts.add()
   local allScripts = {
     {name="DW Auto Level", bolfolder="DW\\Other\\", webfolder="DW\\Other\\", call="Autolevel", require=true},
-    {name="ChampLevels", bolfolder="DW\\Champions\\", webfolder="DW\\Champions\\", call="Champlevel", require=true}
+    {name="ChampLevels", bolfolder="DW\\Champions\\", webfolder="DW\\Champions\\", call="Champlevels", require=true},
+    {name="Chat", bolfolder="DW\\Other\\", webfolder="DW\\Other\\", call="Chatx", require=true}
   }
   return allScripts
-end
-
-function scripts._init(mods)
-  
 end
 
 return scripts
