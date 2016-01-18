@@ -6,23 +6,40 @@ local champ = player.charName
 
 local gmods = {}
 local skills = nil
-local startAL = {levels={}, qOff=0, wOff=0, eOff=0, rOff=0}
+local startAL = {levels={}, qOff=0, wOff=0, eOff=0, rOff=0, packet=0xDB, levelpos=19}
+local lPackets = {}
 -- End Vars
 
 -- ############################################################
 -- ############################################################
-
+function OnSendPacket(p)
+        local header = p.header
+        if doPrintHeaders[header] then
+          print(('0x%02X'):format(header))
+          print(('0x%02X'):format(p.vTable))
+          print(DumpPacketData(p))
+          if unknowns == "" then
+            print("we dont know")
+            p.pos = 20
+            local pingType = p:Decode1() -- decoding it, it will be stored as int
+            print(toHex(pingType)) -- we print in hex so it will match our data file :P
+            unknowns = pingType
+          else
+            print("We know")
+          end
+        end
+end
 -- Global Leveler
 _G.LevelSpell = function(id)
   local offsets = {
-    [_Q] = 0x32,
-    [_W] = 0x78,
-    [_E] = 0xE7,
-    [_R] = 0xD5,
+    [_Q] = 0x71,
+    [_W] = 0xF1,
+    [_E] = 0x31,
+    [_R] = 0xB1,
   }
-  local p = CLoLPacket(0x15)
-  p.vTable = 0xF16A9C
-  p:EncodeF(myHero.networkID)
+  local p = CLoLPacket(startAL.packet)
+  p.vTable = 0xF6D830
+  --[[p:EncodeF(myHero.networkID)
   for i = 1, 4 do p:Encode1(0x04) end
   p:Encode1(offsets[id])
   for i = 1, 4 do p:Encode1(0x16) end
@@ -32,7 +49,7 @@ _G.LevelSpell = function(id)
   p:Encode1(0xF4)
   p:Encode1(0x4E)
   p:Encode1(0x00)
-  SendPacket(p)
+  SendPacket(p)--]]
 end
 -- End Global Leveler
 
@@ -97,7 +114,7 @@ end
 
 local function preformLevel()
   -- Switching from true to false upon changing level
-  if not Menu.DWAutoLevel then return end
+  if not Menu.DWAutoLevel or not lPackets then return end
   
   local qL, wL, eL, rL = player:GetSpellData(_Q).level + startAL.qOff, player:GetSpellData(_W).level + startAL.wOff, player:GetSpellData(_E).level + startAL.eOff, player:GetSpellData(_R).level + startAL.rOff
   local spellSlot = { SPELL_1, SPELL_2, SPELL_3, SPELL_4, }

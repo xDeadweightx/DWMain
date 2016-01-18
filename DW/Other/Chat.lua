@@ -2,9 +2,10 @@ local chatx = {}
 
 local manifest = {version=0.01, script="DWX Chat"}
 local scrollbox = {w=150, h=50, p=2, color=ARGB(255,1,1,1)}
-local settings = {font=12, h=15, offset={x=5, y=20}, color=ARGB(150,1,1,1), drag=false, pos={x=0, y=0}}
-local resizeButton = {w=10,h=10,color=ARGB(150,1,1,1), pos={x,y}, resize=false}
+local settings = {font=12, h=15, offset={x=5, y=20}, color=ARGB(150,1,1,1), drag=false, pos={x=0, y=0}, selectedTab=nil}
+local resizeButton = {w=10,h=10,color=ARGB(150,1,1,1), pos={x=0,y=0}, resize=false}
 local cursor = GetCursorPos()
+local chats = {}
 
 local function menus()
   Menu = scriptConfig(manifest.script, "dwxchat")
@@ -27,6 +28,7 @@ end
 function chatx._init(mods)
   if mods == nil then return end
   menus()
+  chatx.createTab("Chat")
   -- Screen Width: WINDOW_W
   -- Screen Height: WINDOW_H
 end
@@ -60,6 +62,14 @@ function chatx._onDraw()
     end
     DrawRectangle(resizeButton.pos.x, resizeButton.pos.y, resizeButton.w, resizeButton.h, resizeButton.color)
 
+  end
+  
+  local initPos = 0
+  for k,v in pairs(chats) do
+    DrawRectangle(settings.offset.x+(initPos*15+4), settings.offset.y, string.len(k)*6, settings.h, scrollbox.color)
+    DrawTextA(k, 12, settings.offset.x+(initPos*15+8), settings.offset.y+2, ARGB(255,255,255,255))
+    initPos = initPos + 1
+    --PrintChat(k)
   end
   
 end
@@ -136,6 +146,34 @@ function chatx._onWndMsg(msg, key)
   end
   --Resize End
   
+end
+
+function chatx.createTab(name)
+  if chats[name] ~= nil then return end
+  chats[name] = {}
+  
+  --PrintChat(string.format("Added %s", chats[i]))
+end
+
+function chatx.tabName()
+  return settings.selectedTab
+end
+
+function chatx.selectTab(name)
+  PrintChat("Load tab "..name)
+end
+
+function chatx.appendText(name, text)
+  if chats[name] == nil then
+    chats[name] = {text}
+  else
+    chats[name][#chats[name]+1] = text
+  end
+end
+
+function chatx.deleteTab(name)
+  if chats[name] == nil then return end
+  chats[name] = nil
 end
 
 return chatx
