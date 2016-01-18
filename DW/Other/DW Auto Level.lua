@@ -6,28 +6,31 @@ local champ = player.charName
 
 local gmods = {}
 local skills = nil
-local startAL = {levels={}, qOff=0, wOff=0, eOff=0, rOff=0, packet=0xDB, levelpos=19}
+local startAL = {levels={}, qOff=0, wOff=0, eOff=0, rOff=0, levelpos=19}
+local packs = gmods("DwLibs").Set{0xDB}
 local lPackets = {}
 -- End Vars
 
 -- ############################################################
 -- ############################################################
 function OnSendPacket(p)
-        local header = p.header
-        if doPrintHeaders[header] then
-          print(('0x%02X'):format(header))
-          print(('0x%02X'):format(p.vTable))
-          print(DumpPacketData(p))
-          if unknowns == "" then
-            print("we dont know")
-            p.pos = 20
-            local pingType = p:Decode1() -- decoding it, it will be stored as int
-            print(toHex(pingType)) -- we print in hex so it will match our data file :P
-            unknowns = pingType
-          else
-            print("We know")
-          end
-        end
+local header = p.header
+  if packs[header] then
+  print(('0x%02X'):format(header))
+  print(('0x%02X'):format(p.vTable))
+  print(DumpPacketData(p))
+  
+    if unknowns == "" then
+      print("we dont know")
+      p.pos = 20
+      local pingType = p:Decode1() -- decoding it, it will be stored as int
+      print(toHex(pingType)) -- we print in hex so it will match our data file :P
+      unknowns = pingType
+    else
+      print("We know")
+    end
+    
+  end
 end
 -- Global Leveler
 _G.LevelSpell = function(id)
@@ -156,6 +159,7 @@ end
 
 function autolevelx._onTick()
   --If game is less than 5 seconds - stop
+  if true then return end
   if GetInGameTimer() < 5 then return end
   
   --If the auto level is false - stop

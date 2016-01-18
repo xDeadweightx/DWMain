@@ -13,6 +13,12 @@ function libs.Set(list)
   return set
 end
 
+function libs.append(list, val)
+  local l = list
+  l[#list] = val
+  return l
+end
+
 function libs.toHex(int)
   return "0x"..string.format("%02X ",int)
 end
