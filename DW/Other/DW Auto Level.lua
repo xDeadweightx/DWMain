@@ -7,31 +7,16 @@ local champ = player.charName
 local gmods = {}
 local skills = nil
 local startAL = {levels={}, qOff=0, wOff=0, eOff=0, rOff=0, levelpos=19}
-local packs = gmods("DwLibs").Set{0xDB}
+local lib = nil
 local lPackets = {}
+
+
+local Menu = scriptConfig(manifest.script, champ)
 -- End Vars
 
 -- ############################################################
 -- ############################################################
-function OnSendPacket(p)
-local header = p.header
-  if packs[header] then
-  print(('0x%02X'):format(header))
-  print(('0x%02X'):format(p.vTable))
-  print(DumpPacketData(p))
-  
-    if unknowns == "" then
-      print("we dont know")
-      p.pos = 20
-      local pingType = p:Decode1() -- decoding it, it will be stored as int
-      print(toHex(pingType)) -- we print in hex so it will match our data file :P
-      unknowns = pingType
-    else
-      print("We know")
-    end
-    
-  end
-end
+
 -- Global Leveler
 _G.LevelSpell = function(id)
   local offsets = {
@@ -40,19 +25,22 @@ _G.LevelSpell = function(id)
     [_E] = 0x31,
     [_R] = 0xB1,
   }
-  local p = CLoLPacket(startAL.packet)
+  local p = CLoLPacket(0xDB)
   p.vTable = 0xF6D830
-  --[[p:EncodeF(myHero.networkID)
-  for i = 1, 4 do p:Encode1(0x04) end
-  p:Encode1(offsets[id])
-  for i = 1, 4 do p:Encode1(0x16) end
-  for i = 1, 4 do p:Encode1(0x1D) end
-  p:Encode1(0x4E)
-  p:Encode1(0xC4)
-  p:Encode1(0xF4)
-  p:Encode1(0x4E)
+  
+  p:EncodeF(myHero.networkID)
+  
+  --[[p:Encode1(0x00)
+  p:Encode1(0x19)
   p:Encode1(0x00)
-  SendPacket(p)--]]
+  p:Encode1(0x00)
+  p:Encode1(0x40)--]]
+  for i = 1, 4 do p:Encode1(0x30) end
+  p:Encode1(0x17)
+  for i = 1, 4 do p:Encode1(0x81) end
+  for i = 1, 4 do p:Encode1(0x6A) end
+  p:Encode1(offsets[id])
+  SendPacket(p)
 end
 -- End Global Leveler
 
@@ -70,14 +58,14 @@ function getKeys(table)
     else
       keys[#keys+1] = key
     end
-  end
-  
+  end  
   return keys
 end
 
 local function DWX_AutoLevel_Menu()
   --PrintChat(string.format("<font color=\"%s\">%s - Version %s Loaded! Enjoy.</font>",colors.color1, manifest.script, manifest.version))
   skills = gmods["Champlevels"].returnSkills()
+  lib = gmods["DwLibs"].toSet({0xDB})
   for _,v in pairs(rOffsets) do
     if v == champ then
       startAL.rOff = -1
@@ -85,7 +73,6 @@ local function DWX_AutoLevel_Menu()
     end
   end
   
-  Menu = scriptConfig(manifest.script, champ)
   Menu:addParam("DWAutoLevel", "Auto-Level Spells for "..champ.." key", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
   Menu:addParam("DWHumanizerQWE", "Humanizer [Q-W-E] (seconds)", SCRIPT_PARAM_SLICE, 3, 0, 10, -math.log(1)/math.log(10))
   Menu:addParam("DWHumanizerR", "Humanizer [ULT] (seconds)", SCRIPT_PARAM_SLICE, 1, 0, 10, -math.log(1)/math.log(10))
@@ -108,16 +95,17 @@ local function DWX_AutoLevel_Menu()
     --PrintChat(string.format("<font color=\"%s\">%s - Champion Selection Error</font>",colors.error,manifest.script))
   end
   
-  Menu.DWAutoLevel = false
-  
   if #keys > 1 then
     Menu.DWLevelList = -1
+  end
+  if #startAL.levels == 0 or #startAL.levels == nil then
+    Menu.DWAutoLevel = false
   end
 end
 
 local function preformLevel()
   -- Switching from true to false upon changing level
-  if not Menu.DWAutoLevel or not lPackets then return end
+  if not Menu.DWAutoLevel then return end
   
   local qL, wL, eL, rL = player:GetSpellData(_Q).level + startAL.qOff, player:GetSpellData(_W).level + startAL.wOff, player:GetSpellData(_E).level + startAL.eOff, player:GetSpellData(_R).level + startAL.rOff
   local spellSlot = { SPELL_1, SPELL_2, SPELL_3, SPELL_4, }
@@ -153,14 +141,15 @@ end
 function autolevelx._init(mods)
   if mods == nil then return end
   gmods = mods
-  
+  --packs = gmods("DwLibs").Set{0xDB}
   DWX_AutoLevel_Menu()
 end
 
 function autolevelx._onTick()
-  --If game is less than 5 seconds - stop
-  if true then return end
-  if GetInGameTimer() < 5 then return end
+  -- If no packets are saved
+  --if not lPackets then return end
+  
+  if GetInGameTimer() < 10 then return end
   
   --If the auto level is false - stop
   if not Menu.DWAutoLevel then return end
@@ -174,5 +163,15 @@ function autolevelx._onTick()
   end
 end
 -- End Hack Loads
+--[[
+function autolevelx._OnSendPacket(p)
+  local header = p.header
+  if packs[header] then
+  print(('0x%02X'):format(header))
+  print(('0x%02X'):format(p.vTable))
+  print(('0x%02X'):format(myHero.networkID))
+  print(DumpPacketData(p))
+  end
+end--]]
 
 return autolevelx
