@@ -1,5 +1,5 @@
 -- Vars Start
-local manifest = {version=0.85, special="Nebelwolfi"}
+local manifest = {version=1.0, special="Nebelwolfi"}
 local colors = {color1="#FF851B", color2="#6582C9", color3="#FFFFFF", error="#FF0000", error2="#FF1919", success="#32CD32", warning="#FFFF00"}
 
 local mods = {}
@@ -246,6 +246,20 @@ function OnWndMsg(msg,key)
     if v.require then
       if type(mods[v.call]._onWndMsg) == 'function' then
         mods[v.call]._onWndMsg(msg,key)
+      end
+    end
+    
+  end
+end
+
+function OnSendPacket(p)
+if not q.menus then return end
+  for _=1, #scripts do
+    local v = scripts[_]
+    
+    if v.require then
+      if type(mods[v.call]._OnSendPacket) == 'function' then
+        mods[v.call]._OnSendPacket(p)
       end
     end
     

@@ -1,12 +1,12 @@
 -- Start Vars
 local autolevelx = {}
-local manifest = {version=0.04, script="DWX Auto Leveler"}
+local manifest = {version=0.5, script="DWX Auto Leveler"}
 
 local champ = player.charName
 
 local gmods = {}
 local skills = nil
-local startAL = {levels={}, qOff=0, wOff=0, eOff=0, rOff=0, levelpos=19}
+local startAL = {levels={}, qOff=0, wOff=0, eOff=0, rOff=0, total=0}
 local lib = nil
 local lPackets = {}
 
@@ -20,26 +20,20 @@ local Menu = scriptConfig(manifest.script, champ)
 -- Global Leveler
 _G.LevelSpell = function(id)
   local offsets = {
-    [_Q] = 0x71,
-    [_W] = 0xF1,
-    [_E] = 0x31,
-    [_R] = 0xB1,
+    [_Q] = 0x41,
+    [_W] = 0xFC,
+    [_E] = 0x64,
+    [_R] = 0xAA,
   }
-  local p = CLoLPacket(0xDB)
-  p.vTable = 0xF6D830
+  local p = CLoLPacket(0x153)
+  p.vTable = 0xF700D0
   
   p:EncodeF(myHero.networkID)
-  
-  --[[p:Encode1(0x00)
-  p:Encode1(0x19)
-  p:Encode1(0x00)
-  p:Encode1(0x00)
-  p:Encode1(0x40)--]]
-  for i = 1, 4 do p:Encode1(0x30) end
-  p:Encode1(0x17)
-  for i = 1, 4 do p:Encode1(0x81) end
-  for i = 1, 4 do p:Encode1(0x6A) end
   p:Encode1(offsets[id])
+  for i = 1, 4 do p:Encode1(0xF7) end
+  for i = 1, 4 do p:Encode1(0xAF) end
+  p:Encode1(0x8F)
+  for i = 1, 4 do p:Encode1(0xA5) end
   SendPacket(p)
 end
 -- End Global Leveler
@@ -63,9 +57,9 @@ function getKeys(table)
 end
 
 local function DWX_AutoLevel_Menu()
-  --PrintChat(string.format("<font color=\"%s\">%s - Version %s Loaded! Enjoy.</font>",colors.color1, manifest.script, manifest.version))
+  PrintChat(string.format("<font color=\"%s\">%s - Version %s Loaded! Enjoy.</font>",gmods["DwLibs"].colors.DWCOLOR, manifest.script, manifest.version))
   skills = gmods["Champlevels"].returnSkills()
-  lib = gmods["DwLibs"].toSet({0xDB})
+  
   for _,v in pairs(rOffsets) do
     if v == champ then
       startAL.rOff = -1
@@ -77,9 +71,9 @@ local function DWX_AutoLevel_Menu()
   Menu:addParam("DWHumanizerQWE", "Humanizer [Q-W-E] (seconds)", SCRIPT_PARAM_SLICE, 3, 0, 10, -math.log(1)/math.log(10))
   Menu:addParam("DWHumanizerR", "Humanizer [ULT] (seconds)", SCRIPT_PARAM_SLICE, 1, 0, 10, -math.log(1)/math.log(10))
   
-  local keys = nil
+  local keys = {}
   
-  if skills then
+  if type(skills) == 'table' then
     if #skills == 18 then
       startAL.levels = skills
     else
@@ -89,10 +83,7 @@ local function DWX_AutoLevel_Menu()
       else
         Menu:addParam("DWLevelList", "Select a level order for "..champ, SCRIPT_PARAM_LIST, 0, keys)
       end
-      
     end
-  else
-    --PrintChat(string.format("<font color=\"%s\">%s - Champion Selection Error</font>",colors.error,manifest.script))
   end
   
   if #keys > 1 then
@@ -124,7 +115,8 @@ local function AutoLevel()
     if not VIP_USER then return end
     
     local qL, wL, eL, rL = player:GetSpellData(_Q).level + startAL.qOff, player:GetSpellData(_W).level + startAL.wOff, player:GetSpellData(_E).level + startAL.eOff, player:GetSpellData(_R).level + startAL.rOff
-    if qL + wL + eL + rL < player.level then
+    startAL.total = qL + wL + eL + rL
+    if startAL.total < player.level then
       if player.level == 6 or player.level == 11 or player.level == 16 then
         DelayAction(preformLevel, Menu.DWHumanizerR)
       else
@@ -141,37 +133,30 @@ end
 function autolevelx._init(mods)
   if mods == nil then return end
   gmods = mods
-  --packs = gmods("DwLibs").Set{0xDB}
   DWX_AutoLevel_Menu()
 end
 
-function autolevelx._onTick()
-  -- If no packets are saved
-  --if not lPackets then return end
-  
+function autolevelx._onTick()  
   if GetInGameTimer() < 10 then return end
-  
-  --If the auto level is false - stop
-  if not Menu.DWAutoLevel then return end
   
   if #getKeys(skills) > 1 and Menu.DWLevelList ~= -1 then
     startAL.levels = skills[getKeys(skills)[Menu.DWLevelList]]
   end
+  --If the auto level is false - stop
+  if not Menu.DWAutoLevel then return end
   
-  if #startAL.levels ~= 0 and #startAL.levels ~= nil then
+  if #startAL.levels == 18 then
     AutoLevel()
   end
 end
 -- End Hack Loads
---[[
-function autolevelx._OnSendPacket(p)
-  local header = p.header
-  if packs[header] then
-  print(('0x%02X'):format(header))
-  print(('0x%02X'):format(p.vTable))
-  print(('0x%02X'):format(myHero.networkID))
-  print(DumpPacketData(p))
-  end
-end--]]
+
+-- DWX BoL Draw Load
+function autolevelx._onDraw()
+  if #startAL.levels ~= 18 then return end
+  
+  gmods["DwLibs"].stringLevel(startAL.levels, startAL.total)
+end
+-- End Draw Load
 
 return autolevelx
