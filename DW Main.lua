@@ -4,7 +4,7 @@ local colors = {color1="#FF851B", color2="#6582C9", color3="#FFFFFF", error="#FF
 
 local mods = {}
 local scriptLoader
-local folders = {"DW","DW\\AI","DW\\Bots","DW\\Champions","DW\\Other"}
+local folders = {"DW","DW\\Champions","DW\\Other"}
 local q = {p=LIB_PATH, s=SCRIPT_PATH, sel=1, start=false, v="", menus=false}
 
 local scripts = {
