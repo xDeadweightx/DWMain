@@ -1,6 +1,6 @@
 -- Start Vars
 local autolevelx = {}
-local manifest = {version=0.5, script="DWX Auto Leveler"}
+local manifest = {version=0.6, script="DWX Auto Leveler"}
 
 local champ = player.charName
 
@@ -20,20 +20,20 @@ local Menu = scriptConfig(manifest.script, champ)
 -- Global Leveler
 _G.LevelSpell = function(id)
   local offsets = {
-    [_Q] = 0x41,
-    [_W] = 0xFC,
-    [_E] = 0x64,
-    [_R] = 0xAA,
+    [_Q] = 0xEC,
+    [_W] = 0x8F,
+    [_E] = 0x9D,
+    [_R] = 0x65,
   }
-  local p = CLoLPacket(0x153)
-  p.vTable = 0xF700D0
+  local p = CLoLPacket(0x0139)
+  p.vTable = 0x110870
   
   p:EncodeF(myHero.networkID)
   p:Encode1(offsets[id])
-  for i = 1, 4 do p:Encode1(0xF7) end
-  for i = 1, 4 do p:Encode1(0xAF) end
-  p:Encode1(0x8F)
-  for i = 1, 4 do p:Encode1(0xA5) end
+  for i = 1, 4 do p:Encode1(0x70) end
+  for i = 1, 4 do p:Encode1(0x43) end
+  p:Encode1(0x7A)
+  for i = 1, 4 do p:Encode1(0x0A) end
   SendPacket(p)
 end
 -- End Global Leveler
