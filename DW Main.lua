@@ -1,28 +1,60 @@
--- Vars Start
-local manifest = {version=1.0, special="Nebelwolfi"}
-local colors = {color1="#FF851B", color2="#6582C9", color3="#FFFFFF", error="#FF0000", error2="#FF1919", success="#32CD32", warning="#FFFF00"}
+--[[
+  START: Variables
+]]--
+
+local manifest = {version=1.0, dev = "Deadweight"}
+
+local colors = {
+  color1  = "#FF851B",
+  color2  = "#6582C9",
+  color3  = "#FFFFFF",
+  error = "#FF0000",
+  error2  = "#FF1919",
+  success = "#32CD32",
+  warning = "#FFFF00"
+}
 
 local mods = {}
-local scriptLoader
-local folders = {"DW","DW\\Champions","DW\\Other"}
-local q = {p=LIB_PATH, s=SCRIPT_PATH, sel=1, start=false, v="", menus=false}
 
-local scripts = {
-  {name="DW Main", bolfolder="", webfolder="", call="Main", require=false},
-  {name="Script Configs", bolfolder="DW\\Other\\", webfolder="DW\\Other\\", call="ScriptConfigs", require=true}
+local dwSettings = {
+  folders = {"DW","DW\\Champions","DW\\Other"},
+  reqScripts = { --Force means check and update automactically
+    {
+      name = "DW Main",
+      bolfolder = "",
+      webfolder = "",
+      call = "Main",
+      check = true
+    },
+      {
+      name = "Script Configs",
+      bolfolder = "DW\\Other\\",
+      webfolder = "DW\\Other\\",
+      call = "ScriptConfigs",
+      check = true
+    }
+  },
+  addedScripts = {},
+  hosts = {
+    host = "raw.githubusercontent.com",
+    path = "/xDeadweightx/DWMain/DWMain/",
+    append = "?no-cache="..math.random(1,25000)
+  },
+  bolSettings = {
+    lpath = LIB_PATH,
+    spath = SCRIPT_PATH,
+    count = 1
+  },
 }
 
-local hosts = {
-  host = "raw.githubusercontent.com",
-  path = "/xDeadweightx/DWMain/DWMain/",
-  append = "?no-cache="..math.random(1,25000)
-}
---Vars End
+--[[
+  END: Variables
+]]--
+---------------------------------------------------------------------------------------
+--[[
+  START: Functions
+]]--
 
--- ############################################################
--- ############################################################
-
--- Simple Functions
 local function checkDIR(name)
   if not DirectoryExist(name) then CreateDirectory(name) end
 end
@@ -30,7 +62,7 @@ end
 local function dwPrint(str, color)
   color = color or colors.color1
   str = str or " "
-  return "<font color=\""..color.."\">"..str.."</font>"
+   PrintChat(string.format("%s", "<font color=\""..color.."\">"..str.."</font>"))
 end
 
 local function appendTable(t1, t2)
@@ -44,225 +76,149 @@ end
 
 function t(str)
   string.gsub(str,"version=(.-),", function(a)
-    q.v = a
+    dwSettings.v = a
   end)
 end
 
 function t2(str)
   string.gsub(str,"version=(.-)}", function(a)
-    q.v = a
+    dwSettings.v = a
   end)
 end
--- End Simple Functions
 
--- ############################################################
--- ############################################################
+local scriptLoader
+--[[
+  END: Functions
+]]--
+---------------------------------------------------------------------------------------
+--[[
+  START: Created Functions
+]]--
 
--- Real Start
-local function dwStart()
-  for _=1, #scripts do
-    local v = scripts[_]
-    if v.require then
-      if type(mods[v.call]._init) == 'function' then
-        mods[v.call]._init(mods)
-      end
+scriptLoader = function(scripts)
+  --dwPrint(#scripts)
+  for k,v in ipairs(scripts) do
+    if v.check then
+      scriptDownload(scriptCheck(v))
     end
   end
-  PrintChat(string.format("%s", dwPrint("Scripts and Menus have loaded! No reloaded required. :3", colors.color3)))
-  q.menus = true
+
+  if dwSettings.reqReload then
+    dwPrint("A reload is required!")
+  else
+    dwPrint("DW Packages have been added. Please select the ones you want to download/update.")
+  end
+
 end
--- End Start
 
--- ############################################################
--- ############################################################
+scriptCheck = function(file) 
+  local path =  dwSettings.bolSettings.spath .. file.bolfolder .. file.name .. ".lua"
+  local update_url = "https://" .. dwSettings.hosts.host .. dwSettings.hosts.path .. file.webfolder .. file.name .. ".lua" .. dwSettings.hosts.append
+  local downloadType = 1 -- Autoset to download
+  local msg = " - DW ERROR: " .. file.name .. ".lua not found. Attempting to Download."
+  local color = colors.error
 
--- Check Scripts Function
-scriptLoader = function()
-  if scripts[q.sel] ~= nil then
-    --PrintChat(string.format("%s",scripts[q.sel].name))
-    local name, bolpath, webpath, call, req = scripts[q.sel].name, scripts[q.sel].bolfolder, scripts[q.sel].webfolder, scripts[q.sel].call, scripts[q.sel].require
-    
-    local full_path = q.p .. bolpath .. name .. ".lua"
-    if call=="Main" then
-      full_path = q.s .. name .. ".lua"
+  if file.call ~= "Main" then
+      path =  dwSettings.bolSettings.lpath .. file.bolfolder .. file.name .. ".lua"
+  end
+
+  if FileExist(path) then
+    local ServerData = GetWebResult(dwSettings.hosts.host, dwSettings.hosts.path .. file.webfolder .. file.name ..".version")
+      if ServerData then
+        local ServerVersion = type(tonumber(ServerData)) == "number" and tonumber(ServerData) or nil
+        if ServerVersion then
+          t(ReadFile(path))
+          if type(tonumber(dwSettings.v)) ~= "number" and not tonumber(dwSettings.v) then
+            t2(ReadFile(path))
+          end
+          
+          local  cversion = type(tonumber(dwSettings.v)) == "number" and tonumber(dwSettings.v) or nil
+          
+          if file.call == "Main" then cversion = manifest.version end
+
+          if cversion < ServerVersion then
+            downloadType = 3 --Update
+            msg = " - DW WARNING: " .. file.name .. ".lua Version. Attempting to Update => " .. cversion .. " to " .. ServerVersion .. "."
+            color = colors.warning
+          else
+            downloadType = 5 -- File Update to date
+            msg = " - DW GOODIES: " .. file.name .. ".lua Version Up to Date => " .. cversion .. "."
+            color = colors.success
+          end
+      else -- ServerVersion
+        downloadType = 4 -- Error Server Version Found File
+        local msg = " - DW ERROR: " .. file.name .. ".lua Server Version not found. Post in Forums."
+        local color = colors.error2
+      end
+    else -- ServerData
+      downloadType = 2 -- Error: No Server Connection
+      local msg = " - DW ERROR: Server Connection Issue. Post in Forums"
+      local color = colors.error2
     end
-    local update_url = "https://"..hosts.host..hosts.path..webpath..name..".lua"..hosts.append
-    
-    PrintChat(string.format("%s",dwPrint("DW Updater - "..name..".lua")))
-    PrintChat(string.format("%s %s", dwPrint(" - DW Checking Update for"), dwPrint(q.sel.." out of "..#scripts.." scripts.", colors.color2)))
-    
-    if not FileExist(full_path) then
-    
-      PrintChat(string.format( "%s", dwPrint(" - DW Error => "..name..".lua is not found", colors.error) ))
-      PrintChat(string.format("%s",dwPrint(" - DW Attempting to fix the error!", colors.color3)))
-      
-      DelayAction(function()
-        DownloadFile(update_url, full_path, function ()
-            PrintChat(string.format("%s",dwPrint(" - DW Error Resolved => Download Complete.", colors.success)))
-            DelayAction(scriptLoader,.5)
+  end
+  return {dlt = downloadType, p = path, url = update_url, xcolor = color, xmsg = msg, xfile = file}
+
+end
+
+scriptDownload = function(data)
+  dwPrint(data.xmsg, data.xcolor)
+  if data.dlt == 1 or data.dlt == 3 then
+    DelayAction(function()
+        DownloadFile(data.url, data.p, function ()
+            if data.dlt == 1 then
+              dwPrint("File " .. data.xfile.name .. "has been downloaded." )
+            else
+              dwPrint("File " .. data.xfile.name .. "has been updated." )
+            end
+
+            if data.xfile.call == "Main" then
+              dwSettings.reqReload = true
+            end
+
           end)
         end,
       .1)
-      
-    else
-      
-      local ServerData = GetWebResult(hosts.host, hosts.path .. webpath .. name ..".version")
-      if ServerData then
-        local ServerVersion = type(tonumber(ServerData)) == "number" and tonumber(ServerData) or nil
-        
-        if ServerVersion then
-          t(ReadFile(full_path))
-          if type(tonumber(q.v)) ~= "number" and not tonumber(q.v) then
-            t2(ReadFile(full_path))
-          end
-          
-          local  cversion = type(tonumber(q.v)) == "number" and tonumber(q.v) or nil
-          
-          if call == "Main" then cversion = manifest.version end
-          
-          if cversion < ServerVersion then
-            PrintChat(string.format("%s",dwPrint(" - DW Warning => Script Version "..name..".lua", colors.warning)))
-            DelayAction(
-              function()
-                DownloadFile(update_url, full_path,
-                function ()
-                    PrintChat(string.format("%s",dwPrint(" - DW Warning Resolved => "..name..".lua updated from "..cversion.." to "..ServerVersion, colors.success)))
-                    if call == "Main" then
-                      PrintChat(string.format("%s",dwPrint(" - DW Main Updated => Please reload BoL.", colors.error2)))
-                      return
-                    end
-                    DelayAction(scriptLoader,.5)
-                end)
-              end,
-            .1)
-          else
-          
-            PrintChat(string.format("%s",dwPrint(" - DW Recents => "..name..".lua is up to date.", colors.success)))
-            if req then
-              mods[call] = require(bolpath..name)
-            end
-            if call == "ScriptConfigs" then
-              local extraTable = {}
-              extraTable = mods[call].add()
-              appendTable(extraTable)
-            end
-            
-            q.sel = q.sel + 1
-            DelayAction(scriptLoader,.5)
-          end
-          
-        else
-          PrintChat(string.format( "%s", dwPrint(" - DW Error => Update File "..name..".lua is not found. Report this please.", colors.error) ))
-          if req then
-            mods[call] = require(bolpath..name)
-          end
-          q.sel = q.sel + 1
-          DelayAction(scriptLoader,.5)
-        end
-      end
-      
-    end
-   
-  else
-    
-    dwStart()
-    
   end
-  
 end
--- End Check Scripts Function
 
--- ############################################################
--- ############################################################
+--[[
+  END: Created Functions
+]]--
+---------------------------------------------------------------------------------------
+--[[
+  START: BoL Functions
+]]--
 
--- Menu Init
-local function loadMenus()
-  
-end
--- End Menu Init
-
--- ############################################################
--- ############################################################
-
--- BoL Normal Functions
 function OnLoad()
-  PrintChat(string.format("%s", dwPrint("Welcome to DW Main. Update will start in about 3 seconds.")))
+  dwPrint("Welcome to DW Main. Update will start in about 3 seconds.")
   
   --Create Folders
-  for _,value in ipairs(folders) do
-    checkDIR(q.p..value)
+  for _,file in ipairs(dwSettings.folders) do
+    checkDIR(dwSettings.bolSettings.lpath..file)
   end
   
-  DelayAction(scriptLoader,3)
+  DelayAction(function()
+    scriptLoader(dwSettings.reqScripts)
+  end, 3)
   
 end
 
 function OnTick()
-  if not q.menus then return end
-  for _=1, #scripts do
-    local v = scripts[_]
-    
-    if v.require then
-      if type(mods[v.call]._onTick) == 'function' then
-        mods[v.call]._onTick()
-      end
-    end
-    
-  end 
 end
 
 function OnDraw()
-  if not q.menus then return end
-  for _=1, #scripts do
-    local v = scripts[_]
-    
-    if v.require then
-      if type(mods[v.call]._onDraw) == 'function' then
-        mods[v.call]._onDraw()
-      end
-    end
-    
-  end 
 end
 
 function OnUnload()
-  for _=1, #scripts do
-    local v = scripts[_]
-    
-    if v.require then
-      if type(mods[v.call]._onUnload) == 'function' then
-        mods[v.call]._onUnload()
-      end
-    end
-    
-  end
 end
 
 function OnWndMsg(msg,key)
-  if not q.menus then return end
-  for _=1, #scripts do
-    local v = scripts[_]
-    
-    if v.require then
-      if type(mods[v.call]._onWndMsg) == 'function' then
-        mods[v.call]._onWndMsg(msg,key)
-      end
-    end
-    
-  end
 end
 
 function OnSendPacket(p)
-if not q.menus then return end
-  for _=1, #scripts do
-    local v = scripts[_]
-    
-    if v.require then
-      if type(mods[v.call]._OnSendPacket) == 'function' then
-        mods[v.call]._OnSendPacket(p)
-      end
-    end
-    
-  end
 end
---End BoL Normal Functions
+
+--[[
+  END: BoL Functions
+]]--
+---------------------------------------------------------------------------------------
