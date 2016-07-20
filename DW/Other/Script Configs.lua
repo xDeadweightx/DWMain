@@ -1,5 +1,5 @@
 local scripts = {}
-local manifest = {version=0.55}
+local manifest = {version=0.6}
 local allScripts = {
     	["DW Autoleveler"] = {
     		{name="ChampLevels", bolfolder="DW\\Champions\\", webfolder="DW\\Champions\\", call="Champlevels", desc = "Champs Config File"},
