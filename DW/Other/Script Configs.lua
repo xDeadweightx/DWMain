@@ -1,5 +1,5 @@
 local scripts = {}
-local manifest = {version=0.5}
+local manifest = {version=0.55}
 local allScripts = {
     	["DW Autoleveler"] = {
     		{name="ChampLevels", bolfolder="DW\\Champions\\", webfolder="DW\\Champions\\", call="Champlevels", desc = "Champs Config File"},
@@ -28,6 +28,7 @@ function scripts._init(mods)
 	for k,v in pairs(allScripts) do
 		local m = v.menu
 		Menu:addSubMenu(k .. "Package Info", m)
+		Menu:addParam("AutoDownloader", "Auto Download Packages", SCRIPT_PARAM_ONOFF, false)
 		Menu:addParam(m .. "Downloader", k .. " Package Download", SCRIPT_PARAM_ONOFF, false)
 
 		if m == "DwAutoLeveler" then
