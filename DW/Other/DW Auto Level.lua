@@ -1,6 +1,6 @@
 -- Start Vars
 local autolevelx = {}
-local manifest = {version=0.6, script="DWX Auto Leveler"}
+local manifest = {version=0.5, script="DWX Auto Leveler"}
 
 local champ = player.charName
 
@@ -19,7 +19,7 @@ local Menu = scriptConfig(manifest.script, champ)
 
 -- Global Leveler
 _G.LevelSpell = function(id)
-  local offsets = {
+   local offsets = {
     [_Q] = 0xEC,
     [_W] = 0x8F,
     [_E] = 0x9D,
@@ -57,7 +57,7 @@ function getKeys(table)
 end
 
 local function DWX_AutoLevel_Menu()
-  PrintChat(string.format("<font color=\"%s\">%s - Version %s Loaded! Enjoy.</font>",gmods["DwLibs"].colors.DWCOLOR, manifest.script, manifest.version))
+  --PrintChat(string.format("<font color=\"%s\">%s - Version %s Loaded! Enjoy.</font>",gmods["DwLibs"].colors.DWCOLOR, manifest.script, manifest.version))
   skills = gmods["Champlevels"].returnSkills()
   
   for _,v in pairs(rOffsets) do

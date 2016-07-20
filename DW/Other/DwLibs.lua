@@ -38,6 +38,16 @@ function DwLibs.append(list, val)
   return l
 end
 
+function DwLibs.appendTable(t1, t2)
+  t1 = t1 or nil
+  t2 = t2 or {}
+  if t1 == nil then PrintChat("Error => Table Concat (missing)") return end
+  for k,v in ipairs(t1) do
+    t2[#t2+1] = v
+  end
+  return t2
+end
+
 function DwLibs.toHex(int)
   return "0x"..string.format("%02X ",int)
 end
@@ -66,6 +76,12 @@ function DwLibs.stringLevel(arr, skillTotal)
     end
     DrawText(SkillEnum[arr[i]], 15, 10, 12 * i, color)
   end
+end
+
+function DwLibs.dwPrint(str, color)
+  color = color or "#FF851B"
+  str = str or " "
+   PrintChat(string.format("%s", "<font color=\""..color.."\">"..str.."</font>"))
 end
 
 return DwLibs

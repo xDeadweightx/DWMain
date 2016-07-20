@@ -15,24 +15,32 @@ local colors = {
 }
 
 local mods = {}
+local checkMods = {}
 
 local dwSettings = {
   folders = {"DW","DW\\Champions","DW\\Other"},
-  reqScripts = { --Force means check and update automactically
-    {
-      name = "DW Main",
-      bolfolder = "",
-      webfolder = "",
-      call = "Main",
-      check = true
-    },
+  Scripts = { --Force means check and update automactically
+        {
+          name = "DW Main",
+          bolfolder = "",
+          webfolder = "",
+          call = "Main",
+          check = true
+      },
       {
-      name = "Script Configs",
-      bolfolder = "DW\\Other\\",
-      webfolder = "DW\\Other\\",
-      call = "ScriptConfigs",
-      check = true
-    }
+        name = "DwLibs",
+        bolfolder = "DW\\Other\\",
+        webfolder = "DW\\Other\\",
+        call = "DwLibs",
+        check = true
+      },
+      {
+        name = "Script Configs",
+        bolfolder = "DW\\Other\\",
+        webfolder = "DW\\Other\\",
+        call = "ScriptConfigs",
+        check = true
+      }
   },
   addedScripts = {},
   hosts = {
@@ -43,7 +51,8 @@ local dwSettings = {
   bolSettings = {
     lpath = LIB_PATH,
     spath = SCRIPT_PATH,
-    count = 1
+    count = 1,
+    start = true
   },
 }
 
@@ -60,18 +69,19 @@ local function checkDIR(name)
 end
 
 local function dwPrint(str, color)
-  color = color or colors.color1
-  str = str or " "
+   color = color or colors.color1
+   str = str or " "
    PrintChat(string.format("%s", "<font color=\""..color.."\">"..str.."</font>"))
 end
 
 local function appendTable(t1, t2)
   t1 = t1 or nil
-  t2 = t2 or scripts
+  t2 = t2 or dwSettings.addedScripts
   if t1 == nil then PrintChat("Error => Table Concat (missing)") return end
   for k,v in ipairs(t1) do
     t2[#t2+1] = v
   end
+  return t2
 end
 
 function t(str)
@@ -87,6 +97,7 @@ function t2(str)
 end
 
 local scriptLoader
+
 --[[
   END: Functions
 ]]--
@@ -95,18 +106,27 @@ local scriptLoader
   START: Created Functions
 ]]--
 
-scriptLoader = function(scripts)
-  --dwPrint(#scripts)
-  for k,v in ipairs(scripts) do
-    if v.check then
-      scriptDownload(scriptCheck(v))
-    end
-  end
+scriptLoader = function(start)
+   start = start or dwSettings.bolSettings.count
 
-  if dwSettings.reqReload then
-    dwPrint("A reload is required!")
+  if dwSettings.addedScripts[start] ~= nil then
+    dwPrint("Checking Script: " .. start .. " / " .. #dwSettings.addedScripts)
+    scriptDownload(scriptCheck(dwSettings.addedScripts[start]))
   else
-    dwPrint("DW Packages have been added. Please select the ones you want to download/update.")
+    dwPrint(" ")
+    if dwSettings.reqReload then
+      dwPrint(" - DW Action Required: A reload is required! Press F9 Twice!")
+    else
+      
+      if dwSettings.bolSettings.start then
+         dwPrint(" - DW Info: DW Packages have been added. Please select the ones you want to download/update.", colors.color2)
+         dwPrint(" - Thank you for using DW Scripts! <3")
+         mods["ScriptConfigs"]._init(mods)
+      else
+         dwPrint("The files have been downloaded! NO Reload Required!", colors.success)
+      end
+
+    end
   end
 
 end
@@ -166,18 +186,37 @@ scriptDownload = function(data)
     DelayAction(function()
         DownloadFile(data.url, data.p, function ()
             if data.dlt == 1 then
-              dwPrint("File " .. data.xfile.name .. "has been downloaded." )
+              dwPrint("File " .. data.xfile.name .. ".lua has been downloaded." )
             else
-              dwPrint("File " .. data.xfile.name .. "has been updated." )
+              dwPrint("File " .. data.xfile.name .. ".lua has been updated.", colors.color3)
             end
 
             if data.xfile.call == "Main" then
               dwSettings.reqReload = true
             end
-
+            scriptLoader()
           end)
         end,
       .1)
+  else
+      --Make sure we already dont have the file loaded
+      if mods[data.xfile.call] == nil and data.xfile.call ~= "Main" then
+        mods[data.xfile.call] = require(data.xfile.bolfolder .. data.xfile.name)
+
+        if not dwSettings.bolSettings.start then
+             if type(mods[data.xfile.call]._init) == 'function' then
+               mods[data.xfile.call]._init(mods)
+            end
+         end
+      end
+      
+      -- if data.xfile.call == "ScriptConfigs" then
+      --   dwSettings.addedScripts = mods[data.xfile.call].add()
+      -- end
+
+      dwSettings.bolSettings.count = dwSettings.bolSettings.count + 1
+
+      scriptLoader()
   end
 end
 
@@ -191,6 +230,7 @@ end
 
 function OnLoad()
   dwPrint("Welcome to DW Main. Update will start in about 3 seconds.")
+  dwSettings.addedScripts = dwSettings.Scripts
   
   --Create Folders
   for _,file in ipairs(dwSettings.folders) do
@@ -198,21 +238,63 @@ function OnLoad()
   end
   
   DelayAction(function()
-    scriptLoader(dwSettings.reqScripts)
+    scriptLoader()
   end, 3)
-  
+
 end
 
 function OnTick()
+   if dwSettings.bolSettings.start then
+      return
+   end
+   for k,v in pairs(mods) do
+      if type(v._onTick) == 'function' then
+         v._onTick()
+      end
+   end
 end
 
 function OnDraw()
+  if dwSettings.bolSettings.start then
+      return
+   end
+   for k,v in pairs(mods) do
+      if type(v._onDraw) == 'function' then
+         v._onDraw()
+      end
+   end
 end
 
 function OnUnload()
+   if dwSettings.bolSettings.start then
+      return
+   end
+   for k,v in pairs(mods) do
+      if type(v._onUnload) == 'function' then
+         v._onUnload()
+      end
+   end
 end
 
-function OnWndMsg(msg,key)
+function OnWndMsg(msg, key)
+   if msg == 257 and key == 187 then
+      dwSettings.bolSettings.start = false
+      dwSettings.addedScripts = mods["ScriptConfigs"].updateScriptsDownloads()
+      dwSettings.bolSettings.count = 1
+      if #dwSettings.addedScripts > 0 then
+         scriptLoader()
+      end
+   end
+
+   if dwSettings.bolSettings.start then
+      return
+   end
+   for k,v in pairs(mods) do
+      if type(v._onWndMsg) == 'function' then
+         v._onWndMsg(msg, key)
+      end
+   end
+
 end
 
 function OnSendPacket(p)
