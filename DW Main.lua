@@ -2,7 +2,7 @@
   START: Variables
 ]]--
 
-local manifest = {version=1.11, dev = "Deadweight"}
+local manifest = {version=1.1, dev = "Deadweight"}
 
 local colors = {
   color1  = "#FF851B",
@@ -98,9 +98,9 @@ end
 
 local scriptLoader
 
-function requestReload() {
+function requestReload() 
   dwPrint(" - DW Action Required: A reload is required! Press F9 Twice!")
-}
+end
 
 --[[
   END: Functions
