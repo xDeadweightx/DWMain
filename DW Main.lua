@@ -2,7 +2,7 @@
   START: Variables
 ]]--
 
-local manifest = {version=1.1, dev = "Deadweight"}
+local manifest = {version=1.11, dev = "Deadweight"}
 
 local colors = {
   color1  = "#FF851B",
@@ -118,21 +118,13 @@ scriptLoader = function(start)
     scriptDownload(scriptCheck(dwSettings.addedScripts[start]))
   else
     dwPrint(" ")
-    if dwSettings.reqReload then
-      requestReload()
+    if dwSettings.bolSettings.start then
+       dwPrint(" - DW Info: DW Packages have been added. Please select the ones you want to download/update.", colors.color2)
+       dwPrint(" - Thank you for using DW Scripts! <3")
+       mods["ScriptConfigs"]._init(mods)
     else
-      if dwSettings.bolSettings.start then
-         dwPrint(" - DW Info: DW Packages have been added. Please select the ones you want to download/update.", colors.color2)
-         dwPrint(" - Thank you for using DW Scripts! <3")
-         mods["ScriptConfigs"]._init(mods)
-      else
-         dwPrint("The files have been downloaded! NO Reload Required!", colors.success)
-      end
-
+       dwPrint("The files have been downloaded! NO Reload Required!", colors.success)
     end
-  end
-  if dwSettings.reqReload then
-      requestReload()
   end
 end
 
@@ -199,6 +191,7 @@ scriptDownload = function(data)
 
             if data.xfile.call == "Main" then
               dwSettings.reqReload = true
+              requestReload()
             else
               delayAction(scriptLoader, .5)
             end
