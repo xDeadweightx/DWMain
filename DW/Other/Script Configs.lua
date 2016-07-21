@@ -28,7 +28,7 @@ function scripts._init(mods)
 	for k,v in pairs(allScripts) do
 		local m = v.menu
 		Menu:addSubMenu(k .. "Package Info", m)
-		Menu:addParam("AutoDownloader", "Auto Download Packages", SCRIPT_PARAM_ONOFF, false)
+		Menu:addParam("DWXAutoDownloader", "Auto Download Packages", SCRIPT_PARAM_ONOFF, false)
 		Menu:addParam(m .. "Downloader", k .. " Package Download", SCRIPT_PARAM_ONOFF, false)
 
 		if m == "DwAutoLeveler" then
@@ -44,6 +44,10 @@ function scripts._init(mods)
 		end
 		
 	end
+end
+
+function checkAutoDownload()
+	return Menu.DWXAutoDownloader;
 end
 
 function scripts.updateScriptsDownloads()

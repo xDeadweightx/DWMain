@@ -2,7 +2,7 @@
   START: Variables
 ]]--
 
-local manifest = {version=1.0, dev = "Deadweight"}
+local manifest = {version=1.1, dev = "Deadweight"}
 
 local colors = {
   color1  = "#FF851B",
@@ -46,7 +46,7 @@ local dwSettings = {
   hosts = {
     host = "raw.githubusercontent.com",
     path = "/xDeadweightx/DWMain/DWMain/",
-    append = "?no-cache="..math.random(1,25000)
+    append = "?no-cache="
   },
   bolSettings = {
     lpath = LIB_PATH,
@@ -133,7 +133,7 @@ end
 
 scriptCheck = function(file) 
   local path =  dwSettings.bolSettings.spath .. file.bolfolder .. file.name .. ".lua"
-  local update_url = "https://" .. dwSettings.hosts.host .. dwSettings.hosts.path .. file.webfolder .. file.name .. ".lua" .. dwSettings.hosts.append
+  local update_url = "https://" .. dwSettings.hosts.host .. dwSettings.hosts.path .. file.webfolder .. file.name .. ".lua" .. dwSettings.hosts.append .. math.random(1,25000)
   local downloadType = 1 -- Autoset to download
   local msg = " - DW ERROR: " .. file.name .. ".lua not found. Attempting to Download."
   local color = colors.error
@@ -176,6 +176,7 @@ scriptCheck = function(file)
       local color = colors.error2
     end
   end
+
   return {dlt = downloadType, p = path, url = update_url, xcolor = color, xmsg = msg, xfile = file}
 
 end
@@ -194,7 +195,7 @@ scriptDownload = function(data)
             if data.xfile.call == "Main" then
               dwSettings.reqReload = true
             end
-            scriptLoader()
+            delayAction(scriptLoader, .5)
           end)
         end,
       .1)
@@ -209,14 +210,11 @@ scriptDownload = function(data)
             end
          end
       end
-      
-      -- if data.xfile.call == "ScriptConfigs" then
-      --   dwSettings.addedScripts = mods[data.xfile.call].add()
-      -- end
 
       dwSettings.bolSettings.count = dwSettings.bolSettings.count + 1
 
-      scriptLoader()
+      delayAction(scriptLoader, .5)
+      --scriptLoader()
   end
 end
 
@@ -237,9 +235,12 @@ function OnLoad()
     checkDIR(dwSettings.bolSettings.lpath..file)
   end
   
+  DelayAction(scriptLoader, 3)
+  --[[
   DelayAction(function()
     scriptLoader()
   end, 3)
+  ]]--
 
 end
 
