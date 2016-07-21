@@ -2,7 +2,7 @@
   START: Variables
 ]]--
 
-local manifest = {version=1.1, dev = "Deadweight"}
+local manifest = {version=1.11, dev = "Deadweight"}
 
 local colors = {
   color1  = "#FF851B",
@@ -214,7 +214,7 @@ scriptDownload = function(data)
 
       dwSettings.bolSettings.count = dwSettings.bolSettings.count + 1
 
-      delayAction(scriptLoader, .5)
+      DelayAction(scriptLoader, .5)
       --scriptLoader()
   end
 end
