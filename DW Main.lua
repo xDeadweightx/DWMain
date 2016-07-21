@@ -98,6 +98,10 @@ end
 
 local scriptLoader
 
+function requestReload() {
+  dwPrint(" - DW Action Required: A reload is required! Press F9 Twice!")
+}
+
 --[[
   END: Functions
 ]]--
@@ -117,7 +121,7 @@ scriptLoader = function(start)
     if dwSettings.reqReload then
       dwPrint(" - DW Action Required: A reload is required! Press F9 Twice!")
     else
-      
+      dwSettings.bolSettings.start = true
       if dwSettings.bolSettings.start then
          dwPrint(" - DW Info: DW Packages have been added. Please select the ones you want to download/update.", colors.color2)
          dwPrint(" - Thank you for using DW Scripts! <3")
@@ -195,8 +199,10 @@ scriptDownload = function(data)
             if data.xfile.call == "Main" then
               dwSettings.bolSettings.count = 100
               dwSettings.reqReload = true
+            else
+              delayAction(scriptLoader, .5)
             end
-            delayAction(scriptLoader, .5)
+            
           end)
         end,
       .1)
