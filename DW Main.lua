@@ -193,6 +193,7 @@ scriptDownload = function(data)
             end
 
             if data.xfile.call == "Main" then
+              dwSettings.bolSettings.count = 100
               dwSettings.reqReload = true
             end
             delayAction(scriptLoader, .5)
