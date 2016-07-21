@@ -2,7 +2,7 @@
   START: Variables
 ]]--
 
-local manifest = {version=1.13, dev = "Deadweight"}
+local manifest = {version=1.14, dev = "Deadweight"}
 
 local colors = {
   color1  = "#FF851B",
@@ -46,7 +46,7 @@ local dwSettings = {
   hosts = {
     host = "raw.githubusercontent.com",
     path = "/xDeadweightx/DWMain/DWMain/",
-    append = "?no-cache="
+    append = "?no-cache=" .. math.random(1,25000)
   },
   bolSettings = {
     lpath = LIB_PATH,
@@ -103,20 +103,20 @@ function requestReload()
   dwPrint(" - DW Action Required: A reload is required! Press F9 Twice!")
 end
 
-function alertAutoCD()
-    for i = 1, 4 do dwPrint(" ") end
-    dwPrint(" - DW Auto Updater. Updates will happen in 4 seconds. You may turn off this in BoL Tab")
-    DelayAction(function()
-        if mods["ScriptConfigs"].checkAutoDownload() then
-            dwSettings.bolSettings.start = false
-            dwSettings.addedScripts = mods["ScriptConfigs"].updateScriptsDownloads()
-            dwSettings.bolSettings.count = 1
-            if #dwSettings.addedScripts > 0 then
-             scriptLoader()
-            end
-        end
-    end, 4)
-end
+-- function alertAutoCD()
+--     for i = 1, 4 do dwPrint(" ") end
+--     dwPrint(" - DW Auto Updater. Updates will happen in 4 seconds. You may turn off this in BoL Tab")
+--     DelayAction(function()
+--         if mods["ScriptConfigs"].checkAutoDownload() then
+--             dwSettings.bolSettings.start = false
+--             dwSettings.addedScripts = mods["ScriptConfigs"].updateScriptsDownloads()
+--             dwSettings.bolSettings.count = 1
+--             if #dwSettings.addedScripts > 0 then
+--              scriptLoader()
+--             end
+--         end
+--     end, 4)
+-- end
 
 --[[
   END: Functions
@@ -140,9 +140,9 @@ scriptLoader = function(start)
         dwPrint(" - Thank you for using DW Scripts! <3")
         dwSettings.bolSettings.completed = true
 
-        if mods["ScriptConfigs"].checkAutoDownload() then
-            alertAutoCD()
-        end
+        -- if mods["ScriptConfigs"].checkAutoDownload() then
+        --     alertAutoCD()
+        -- end
     else
        dwPrint("The files have been downloaded! NO Reload Required!", colors.success)
     end
@@ -151,7 +151,7 @@ end
 
 scriptCheck = function(file) 
   local path =  dwSettings.bolSettings.spath .. file.bolfolder .. file.name .. ".lua"
-  local update_url = "https://" .. dwSettings.hosts.host .. dwSettings.hosts.path .. file.webfolder .. file.name .. ".lua" .. dwSettings.hosts.append .. math.random(1,25000)
+  local update_url = "https://" .. dwSettings.hosts.host .. dwSettings.hosts.path .. file.webfolder .. file.name .. ".lua" .. dwSettings.hosts.append
   local downloadType = 1 -- Autoset to download
   local msg = " - DW ERROR: " .. file.name .. ".lua not found. Attempting to Download."
   local color = colors.error
@@ -201,7 +201,9 @@ end
 
 scriptDownload = function(data)
   dwPrint(data.xmsg, data.xcolor)
+
   if data.dlt == 1 or data.dlt == 3 then
+
     DelayAction(function()
         DownloadFile(data.url, data.p, function ()
             if data.dlt == 1 then
@@ -220,6 +222,7 @@ scriptDownload = function(data)
           end)
         end,
       .1)
+
   else
       --Make sure we already dont have the file loaded
       if mods[data.xfile.call] == nil and data.xfile.call ~= "Main" then
