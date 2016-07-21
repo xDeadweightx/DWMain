@@ -1,5 +1,5 @@
 local scripts = {}
-local manifest = {version=0.67}
+local manifest = {version=0.68}
 local allScripts = {
     	["DW Autoleveler"] = {
     		{name="ChampLevels", bolfolder="DW\\Champions\\", webfolder="DW\\Champions\\", call="Champlevels", desc = "Champs Config File"},
@@ -46,13 +46,13 @@ function scripts._init(mods)
 	end
 end
 
--- function scripts.checkAutoDownload()
--- 	if Menu.DWXAutoDownloader then
--- 		return true
--- 	else
--- 		return false
--- 	end
--- end
+function scripts.checkAutoDownload()
+	if Menu.DWXAutoDownloader then
+		return true
+	else
+		return false
+	end
+end
 
 function scripts.updateScriptsDownloads()
 	if Menu.DwAutoLevelerDownloader then

@@ -2,7 +2,7 @@
   START: Variables
 ]]--
 
-local manifest = {version=1.14, dev = "Deadweight"}
+local manifest = {version=1.16, dev = "Deadweight"}
 
 local colors = {
   color1  = "#FF851B",
@@ -103,20 +103,20 @@ function requestReload()
   dwPrint(" - DW Action Required: A reload is required! Press F9 Twice!")
 end
 
--- function alertAutoCD()
---     for i = 1, 4 do dwPrint(" ") end
---     dwPrint(" - DW Auto Updater. Updates will happen in 4 seconds. You may turn off this in BoL Tab")
---     DelayAction(function()
---         if mods["ScriptConfigs"].checkAutoDownload() then
---             dwSettings.bolSettings.start = false
---             dwSettings.addedScripts = mods["ScriptConfigs"].updateScriptsDownloads()
---             dwSettings.bolSettings.count = 1
---             if #dwSettings.addedScripts > 0 then
---              scriptLoader()
---             end
---         end
---     end, 4)
--- end
+function alertAutoCD()
+    for i = 1, 4 do dwPrint(" ") end
+    dwPrint(" - DW Auto Updater. Updates will happen in 4 seconds. You may turn off this in BoL Tab")
+    DelayAction(function()
+        if mods["ScriptConfigs"].checkAutoDownload() then
+            dwSettings.bolSettings.start = false
+            dwSettings.addedScripts = mods["ScriptConfigs"].updateScriptsDownloads()
+            dwSettings.bolSettings.count = 1
+            if #dwSettings.addedScripts > 0 then
+             scriptLoader()
+            end
+        end
+    end, 4)
+end
 
 --[[
   END: Functions
@@ -140,9 +140,9 @@ scriptLoader = function(start)
         dwPrint(" - Thank you for using DW Scripts! <3")
         dwSettings.bolSettings.completed = true
 
-        -- if mods["ScriptConfigs"].checkAutoDownload() then
-        --     alertAutoCD()
-        -- end
+        if mods["ScriptConfigs"].checkAutoDownload() then
+            alertAutoCD()
+        end
     else
        dwPrint("The files have been downloaded! NO Reload Required!", colors.success)
     end
@@ -216,7 +216,7 @@ scriptDownload = function(data)
               dwSettings.reqReload = true
               requestReload()
             else
-              delayAction(scriptLoader, .5)
+              DelayAction(scriptLoader, .5)
             end
             
           end)
@@ -238,7 +238,6 @@ scriptDownload = function(data)
       dwSettings.bolSettings.count = dwSettings.bolSettings.count + 1
 
       DelayAction(scriptLoader, .5)
-      --scriptLoader()
   end
 end
 
