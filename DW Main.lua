@@ -2,7 +2,7 @@
   START: Variables
 ]]--
 
-local manifest = {version=1.11, dev = "Deadweight"}
+local manifest = {version=1.13, dev = "Deadweight"}
 
 local colors = {
   color1  = "#FF851B",
@@ -52,7 +52,8 @@ local dwSettings = {
     lpath = LIB_PATH,
     spath = SCRIPT_PATH,
     count = 1,
-    start = true
+    start = true,
+    completed = false
   },
 }
 
@@ -102,6 +103,21 @@ function requestReload()
   dwPrint(" - DW Action Required: A reload is required! Press F9 Twice!")
 end
 
+function alertAutoCD()
+    for i = 1, 4 do dwPrint(" ") end
+    dwPrint(" - DW Auto Updater. Updates will happen in 4 seconds. You may turn off this in BoL Tab")
+    DelayAction(function()
+        if mods["ScriptConfigs"].checkAutoDownload() then
+            dwSettings.bolSettings.start = false
+            dwSettings.addedScripts = mods["ScriptConfigs"].updateScriptsDownloads()
+            dwSettings.bolSettings.count = 1
+            if #dwSettings.addedScripts > 0 then
+             scriptLoader()
+            end
+        end
+    end, 4)
+end
+
 --[[
   END: Functions
 ]]--
@@ -119,9 +135,14 @@ scriptLoader = function(start)
   else
     dwPrint(" ")
     if dwSettings.bolSettings.start then
-       dwPrint(" - DW Info: DW Packages have been added. Please select the ones you want to download/update.", colors.color2)
-       dwPrint(" - Thank you for using DW Scripts! <3")
-       mods["ScriptConfigs"]._init(mods)
+        mods["ScriptConfigs"]._init(mods)
+        dwPrint(" - DW Info: DW Packages have been added. Please select the ones you want to download/update.", colors.color2)
+        dwPrint(" - Thank you for using DW Scripts! <3")
+        dwSettings.bolSettings.completed = true
+
+        if mods["ScriptConfigs"].checkAutoDownload() then
+            alertAutoCD()
+        end
     else
        dwPrint("The files have been downloaded! NO Reload Required!", colors.success)
     end
@@ -236,12 +257,6 @@ function OnLoad()
   end
   
   DelayAction(scriptLoader, 3)
-  --[[
-  DelayAction(function()
-    scriptLoader()
-  end, 3)
-  ]]--
-
 end
 
 function OnTick()
@@ -278,7 +293,7 @@ function OnUnload()
 end
 
 function OnWndMsg(msg, key)
-   if msg == 257 and key == 187 then
+   if msg == 257 and key == 187 and dwSettings.bolSettings.completed then
       dwSettings.bolSettings.start = false
       dwSettings.addedScripts = mods["ScriptConfigs"].updateScriptsDownloads()
       dwSettings.bolSettings.count = 1

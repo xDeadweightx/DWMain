@@ -46,7 +46,7 @@ function scripts._init(mods)
 	end
 end
 
-function checkAutoDownload()
+function scripts.checkAutoDownload()
 	return Menu.DWXAutoDownloader;
 end
 
